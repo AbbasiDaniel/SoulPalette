@@ -58,23 +58,21 @@ def pixelization():
     video_path = os.path.join('uploads', 'user_video.webm')
     cap = cv2.VideoCapture(video_path)
     fps = 30
-    
     pixels = []
     frame_count = 0
 
     while cap.isOpened():
-        ret, frame = cap.read()
+        ret = cap.grab()
         if not ret:
-            #print(f"Video ended early at frame: {frame_count}")
             break
             
         if frame_count % fps == 0:
-            #print("=")
-            resized_frame = cv2.resize(frame, (224, 224))
-            pixels.append(resized_frame)
-            
+            ret, frame = cap.retrieve()
+            if ret:
+                small_frame = cv2.resize(frame, (320, 240))
+                pixels.append(small_frame)
+                del frame     
         frame_count += 1
-
     cap.release()
     return np.array(pixels)
 
