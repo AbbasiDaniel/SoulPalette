@@ -4,367 +4,705 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SoulPalette | Affective Signal Scanner</title>
+    
+    <!-- Fonts & Chart.js -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <style>
         :root {
-            --bg-color: #040208;
-            --card-bg: rgba(13, 7, 22, 0.75);
-            --card-border: rgba(139, 92, 246, 0.22);
+            --bg-color: #090514;
+            --card-bg: rgba(20, 15, 35, 0.65);
+            --card-border: rgba(139, 92, 246, 0.15);
             --primary: #8b5cf6;
-            --primary-glow: rgba(139, 92, 246, 0.4);
-            --secondary: #4c1d95;
             --soul-accent: #c084fc;
-            --soul-magenta: #d946ef;
             --text-main: #f3f4f6;
-            --text-muted: #8c85a3;
-            --danger: #f43f5e;
+            --text-muted: #9ca3af;
+            
+            /* FER-2013 Emotion Colors */
+            --emo-angry: #ef4444;    
+            --emo-disgust: #10b981;  
+            --emo-fear: #8b5cf6;     
+            --emo-happy: #f59e0b;    
+            --emo-sad: #3b82f6;      
+            --emo-surprise: #f97316; 
+            --emo-neutral: #06b6d4;  
         }
 
         * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
+            box-sizing: border-box; margin: 0; padding: 0;
             font-family: 'Plus Jakarta Sans', sans-serif;
         }
 
         body {
             background-color: var(--bg-color);
             background-image: 
-                radial-gradient(circle at 15% 15%, rgba(124, 58, 237, 0.18) 0px, transparent 45%),
-                radial-gradient(circle at 85% 85%, rgba(217, 70, 239, 0.12) 0px, transparent 45%),
-                radial-gradient(circle at 50% 50%, rgba(15, 8, 31, 0.8) 0px, transparent 100%);
+                radial-gradient(circle at 0% 0%, rgba(124, 58, 237, 0.1) 0px, transparent 50%),
+                radial-gradient(circle at 100% 100%, rgba(6, 182, 212, 0.05) 0px, transparent 50%);
             color: var(--text-main);
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 24px;
-            overflow-x: hidden;
+            display: block; 
+            overflow-y: scroll;
         }
 
-        .container {
-            width: 100%;
-            max-width: 820px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 28px;
+        .wrapper {
+            max-width: 1600px;
+            margin: 40px auto;
+            padding: 0 2vw;
         }
 
+        /* --- Header Section --- */
         header {
-            text-align: center;
+            text-align: left;
+            width: 100%;
+            margin-bottom: 24px;
+            padding-left: 10px;
         }
 
         header h1 {
-            font-size: 2.75rem;
+            font-size: 2.2rem;
             font-weight: 800;
-            background: linear-gradient(135deg, #e9d5ff 0%, #c084fc 40%, #a855f7 70%, #d946ef 100%);
+            background: linear-gradient(135deg, #e9d5ff, #c084fc, #8b5cf6);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 8px;
-            letter-spacing: -0.02em;
-            text-shadow: 0 0 30px rgba(168, 85, 247, 0.3);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        header h1::before {
+            content: "";
+            display: block;
+            width: 24px;
+            height: 24px;
+            background: radial-gradient(circle, #c084fc, #8b5cf6);
+            border-radius: 50%;
+            box-shadow: 0 0 15px rgba(192, 132, 252, 0.8);
         }
 
         header p {
             color: var(--text-muted);
             font-size: 1rem;
-            letter-spacing: 0.02em;
+            letter-spacing: 0.03em;
         }
 
-        .webcam-card {
+        /* --- Main Layout --- */
+        .main-container {
             width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 24px;
+            align-items: flex-start; /* لنگر کردن کل پنل‌ها به سقف */
+        }
+
+        .glass-panel {
             background: var(--card-bg);
             border: 1px solid var(--card-border);
-            backdrop-filter: blur(20px);
-            border-radius: 28px;
-            padding: 28px;
-            box-shadow: 
-                0 25px 60px rgba(0, 0, 0, 0.8),
-                0 0 40px rgba(139, 92, 246, 0.12),
-                inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+
+        h2, h3 {
+            font-weight: 600;
+            color: #e5e7eb;
+            margin-bottom: 16px;
+            font-size: 1.1rem;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+        }
+
+        /* --- Left Column --- */
+        .left-col {
             display: flex;
             flex-direction: column;
-            align-items: center;
-            position: relative;
+            gap: 20px;
         }
 
         .video-wrapper {
             width: 100%;
             aspect-ratio: 16 / 9;
-            background: #020105;
-            border-radius: 20px;
+            background: #000;
+            border-radius: 16px;
             overflow: hidden;
             position: relative;
-            border: 1px solid rgba(139, 92, 246, 0.15);
-            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.9);
+            border: 1px solid rgba(255,255,255,0.05);
         }
 
         video {
-            width: 100%;
-            height: 100%;
+            width: 100%; height: 100%;
             object-fit: cover;
             transform: scaleX(-1);
+            opacity: 0.85;
         }
 
-        .overlay-status {
+        .camera-overlay {
             position: absolute;
-            top: 18px;
-            right: 18px;
-            background: rgba(9, 4, 18, 0.75);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(192, 132, 252, 0.2);
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
+            inset: 0;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 10px;
-            color: var(--text-main);
+            justify-content: center;
+            pointer-events: none;
         }
 
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background-color: var(--text-muted);
+        .camera-overlay h2 {
+            font-size: 1.8rem;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+            margin-bottom: 8px;
         }
 
-        .status-dot.recording {
-            background-color: var(--danger);
-            box-shadow: 0 0 12px var(--danger);
-            animation: pulse 1.5s infinite;
-        }
-
-        .timer-badge {
-            position: absolute;
-            bottom: 18px;
-            left: 18px;
-            background: rgba(9, 4, 18, 0.85);
-            backdrop-filter: blur(12px);
-            padding: 8px 18px;
-            border-radius: 14px;
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--soul-accent);
-            border: 1px solid var(--card-border);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-        }
-
-        .progress-bar-container {
-            width: 100%;
-            height: 4px;
-            background: rgba(255, 255, 255, 0.04);
-            border-radius: 2px;
-            margin-top: 20px;
-            overflow: hidden;
-        }
-
-        .progress-bar {
-            width: 0%;
-            height: 100%;
-            background: linear-gradient(90deg, var(--secondary), var(--primary), var(--soul-magenta));
-            transition: width 0.2s linear;
-        }
+        .timer { font-size: 1.5rem; font-weight: 700; }
 
         .controls {
-            display: flex;
-            gap: 16px;
-            margin-top: 24px;
+            position: absolute;
+            bottom: 20px;
             width: 100%;
+            display: flex;
             justify-content: center;
+            pointer-events: auto;
         }
 
         .btn {
-            background: linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #c084fc 100%);
-            color: #fff;
-            border: none;
-            padding: 16px 36px;
-            border-radius: 16px;
-            font-size: 1.05rem;
-            font-weight: 700;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            padding: 12px 32px;
+            border-radius: 30px;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 6px 25px var(--primary-glow);
-            letter-spacing: 0.02em;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
         }
-
-        .btn:hover {
+        
+        .btn:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.2);
             transform: translateY(-2px);
-            box-shadow: 0 10px 35px rgba(168, 85, 247, 0.55);
-            filter: brightness(1.1);
         }
 
-        .btn:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        .results-card {
-            width: 100%;
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            backdrop-filter: blur(20px);
-            border-radius: 28px;
-            padding: 28px;
-            display: none;
-            flex-direction: column;
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 16px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
         }
 
-        .results-card h2 {
-            font-size: 1.4rem;
-            color: var(--soul-accent);
+        .stat-card {
+            background: rgba(30, 25, 45, 0.5);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
         }
 
-        #analysisOutput {
+        .stat-icon { font-size: 1.8rem; opacity: 0.7; }
+        .stat-info h4 { color: var(--text-muted); font-size: 0.9rem; font-weight: 500; margin-bottom: 4px; }
+        .stat-info .val { font-size: 1.4rem; font-weight: 700; color: #fff; }
+
+        /* --- Right Column --- */
+        .right-col {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start; /* جلوگیری از مرکزگرایی در ستون راست */
+            gap: 20px;
+            opacity: 0.5; 
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+        
+        .right-col.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .top-dash-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            height: 300px; /* ارتفاع کاملا ثابت */
+        }
+
+        /* --- Aura Panel FIXED POSITIONING --- */
+        .aura-panel {
+            display: block; /* از flex خارج شد تا خودسرانه وسط‌چین نشود */
+            text-align: center;
+            height: 100%;
+        }
+
+        .aura-panel h3 {
+            margin-bottom: 30px; /* فاصله سقف کاملا ثابت */
+        }
+
+        .aura-orb {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #fff, var(--emo-neutral));
+            box-shadow: 0 0 40px 10px rgba(6, 182, 212, 0.4), inset 0 0 20px rgba(0,0,0,0.5);
+            
+            /* میخکوب کردن دایره در وسط کادر به صورت ثابت */
+            margin: 0 auto;
+            
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.5);
+            transition: all 1s ease;
+            animation: floatOrb 4s ease-in-out infinite;
+        }
+
+        .primary-emotion-label {
+            margin-top: 26px; /* فاصله تا پایین دایره کاملا ثابت */
+            display: block;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        
+        .primary-emotion-label span {
+            color: var(--emo-neutral);
+            font-weight: 800;
+            margin-left: 6px;
+            transition: color 1s ease;
+        }
+
+        /* Chart Containers */
+        .chart-box {
+            position: relative;
+            width: 100%;
+            height: 200px; /* ارتفاع ثابت برای چارت‌ها */
+        }
+
+        .wave-chart-container {
+            position: relative;
+            width: 100%;
+            height: 250px;
+        }
+
+        /* Analysis & Advice Section */
+        .text-content {
+            font-size: 0.95rem;
+            line-height: 1.7;
             color: var(--text-main);
-            line-height: 1.6;
-            font-size: 0.98rem;
+            min-height: 40px; /* جلوگیری از جمع شدن باکس هنگام خالی بودن */
         }
 
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.35; }
-            100% { opacity: 1; }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--soul-accent);
+            color: var(--soul-accent);
+            padding: 10px 24px;
+            border-radius: 20px;
+            font-weight: 600;
+            margin-top: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline:hover {
+            background: rgba(192, 132, 252, 0.1);
+            box-shadow: 0 0 15px rgba(192, 132, 252, 0.2);
+        }
+
+        .advice-box {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            display: none; 
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .advice-box h4 {
+            color: var(--primary);
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+
+        @keyframes floatOrb {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-8px) scale(1.02); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 1100px) {
+            .main-container { grid-template-columns: 1fr; }
+            .top-dash-row { height: auto; grid-template-columns: 1fr; }
+            .chart-box { min-height: 250px; }
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
+    <div class="wrapper">
+        <!-- Header Section -->
         <header>
             <h1>SoulPalette</h1>
-            <p>60-Second Facial Signal Scan & Emotional Wavelength Analytics</p>
+            <p>Release your soul, don't think about anything, and let your spirit free</p>
         </header>
 
-        <div class="webcam-card">
-            <div class="video-wrapper">
-                <video id="webcam" autoplay muted playsinline></video>
-                
-                <div class="overlay-status">
-                    <span id="statusDot" class="status-dot"></span>
-                    <span id="statusText">System Standby</span>
+        <div class="main-container">
+            <!-- LEFT COLUMN -->
+            <div class="left-col">
+                <div class="glass-panel" style="padding: 16px;">
+                    <div class="video-wrapper">
+                        <video id="webcam" autoplay muted playsinline></video>
+                        <div class="camera-overlay">
+                            <h2 id="statusText">System Standby</h2>
+                            <div id="timer" class="timer">60s</div>
+                        </div>
+                        <div class="controls">
+                            <button id="startBtn" class="btn">Start Scan</button>
+                        </div>
+                    </div>
                 </div>
 
-                <div id="timer" class="timer-badge">60s</div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">🔆</div>
+                        <div class="stat-info">
+                            <h4>Intensity</h4>
+                            <div class="val" id="valI">0.00</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⚖️</div>
+                        <div class="stat-info">
+                            <h4>Stability</h4>
+                            <div class="val" id="valS">0.00</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">〰️</div>
+                        <div class="stat-info">
+                            <h4>Wavelength</h4>
+                            <div class="val" id="valW">0.00</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⚡</div>
+                        <div class="stat-info">
+                            <h4>Burstiness</h4>
+                            <div class="val" id="valB">0.00</div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div class="progress-bar-container">
-                <div id="progressBar" class="progress-bar"></div>
-            </div>
+            <!-- RIGHT COLUMN -->
+            <div class="right-col" id="dashboardPanel">
+                
+                <div class="top-dash-row">
+                    <!-- Radar Chart -->
+                    <div class="glass-panel">
+                        <h3>Results Dashboard</h3>
+                        <div class="chart-box">
+                            <canvas id="radarChart"></canvas>
+                        </div>
+                    </div>
 
-            <div class="controls">
-                <button id="startBtn" class="btn">Begin Soul Scan</button>
-            </div>
-        </div>
+                    <!-- Emotional Aura (FIXED) -->
+                    <div class="glass-panel aura-panel">
+                        <h3>Your Emotional Aura</h3>
+                        <div class="aura-orb" id="auraOrb">Processing</div>
+                        <div class="primary-emotion-label">
+                            PRIMARY EMOTION: <span id="auraLabel">-</span>
+                        </div>
+                    </div>
+                </div>
 
-        <div id="resultsCard" class="results-card">
-            <h2>Affective Analysis</h2>
-            <div id="analysisOutput">Processing signal fast-Fourier transforms (FFT) & analyzing behavioral patterns...</div>
+                <!-- Wave Chart -->
+                <div class="glass-panel" style="height: 320px;">
+                    <h3>7-EMOTION WAVELENGTH TOPOLOGY</h3>
+                    <div class="wave-chart-container">
+                        <canvas id="waveChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Text Analysis & Advice Section -->
+                <div class="glass-panel">
+                    <h3>PSYCHOLOGICAL STATE ANALYSIS</h3>
+                    <!-- متن دیفالت کاملا پاک شده و منتظر سرور است -->
+                    <div class="text-content" id="explainText"></div>
+                    
+                    <button id="adviceBtn" class="btn-outline" style="display: none;">What should I do now?</button>
+                    
+                    <div id="adviceContainer" class="advice-box">
+                        <h4>ADVICE / PROTOCOL</h4>
+                        <div class="text-content" id="adviceText"></div>
+                    </div>
+                </div>
+
+            </div>
         </div>
     </div>
 
     <script>
+        // DOM Elements
         const video = document.getElementById('webcam');
         const startBtn = document.getElementById('startBtn');
-        const timerBadge = document.getElementById('timer');
-        const progressBar = document.getElementById('progressBar');
-        const statusDot = document.getElementById('statusDot');
+        const timerTxt = document.getElementById('timer');
         const statusText = document.getElementById('statusText');
-        const resultsCard = document.getElementById('resultsCard');
-        const analysisOutput = document.getElementById('analysisOutput');
-
+        const dashboardPanel = document.getElementById('dashboardPanel');
+        const auraOrb = document.getElementById('auraOrb');
+        const auraLabel = document.getElementById('auraLabel');
+        const adviceBtn = document.getElementById('adviceBtn');
+        const adviceContainer = document.getElementById('adviceContainer');
+        
         let mediaRecorder;
         let recordedChunks = [];
-        let timerInterval;
+        let radarChartInst = null;
+        let waveChartInst = null;
 
-        async function initCamera() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-                video.srcObject = stream;
-            } catch (err) {
-                statusText.innerText = "Camera Access Error";
-                console.error(err);
+        Chart.defaults.color = '#9ca3af';
+        Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+
+        const emotionColors = {
+            'Angry': '#ef4444',
+            'Disgust': '#10b981',
+            'Fear': '#8b5cf6',
+            'Happy': '#f59e0b',
+            'Sad': '#3b82f6',
+            'Surprise': '#f97316',
+            'Neutral': '#06b6d4'
+        };
+
+        // Init Camera
+        navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
+            video.srcObject = stream;
+        }).catch(err => console.error("Camera error:", err));
+
+        // Toggle Advice Logic
+        adviceBtn.addEventListener('click', () => {
+            if (adviceContainer.style.display === 'none' || adviceContainer.style.display === '') {
+                adviceContainer.style.display = 'block';
+                adviceBtn.innerText = 'Hide Advice';
+            } else {
+                adviceContainer.style.display = 'none';
+                adviceBtn.innerText = 'What should I do now?';
             }
-        }
+        });
 
+        // Start Recording
         startBtn.addEventListener('click', () => {
             recordedChunks = [];
             let timeLeft = 60;
+            startBtn.style.display = 'none';
+            statusText.innerText = "Processing FER Signature";
+            dashboardPanel.classList.remove('active');
             
-            startBtn.disabled = true;
-            statusDot.classList.add('recording');
-            statusText.innerText = "Scanning Signal...";
-            resultsCard.style.display = 'none';
+            // Reset Advice UI & Empty text containers
+            adviceBtn.style.display = 'none';
+            adviceContainer.style.display = 'none';
+            adviceBtn.innerText = 'What should I do now?';
+            document.getElementById('explainText').innerText = "";
+            document.getElementById('adviceText').innerText = "";
+            auraOrb.innerText = "Processing";
+            auraLabel.innerText = "-";
 
             const stream = video.srcObject;
             mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
-
-            mediaRecorder.ondataavailable = (e) => {
-                if (e.data.size > 0) recordedChunks.push(e.data);
-            };
-
-            mediaRecorder.onstop = sendVideoToBackend;
+            mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
+            mediaRecorder.onstop = sendDataToFlask;
             mediaRecorder.start();
 
-            timerInterval = setInterval(() => {
+            const t = setInterval(() => {
                 timeLeft--;
-                timerBadge.innerText = `${timeLeft}s`;
-                progressBar.style.width = `${((60 - timeLeft) / 60) * 100}%`;
-
+                timerTxt.innerText = `${timeLeft}s`;
                 if (timeLeft <= 0) {
-                    clearInterval(timerInterval);
+                    clearInterval(t);
                     mediaRecorder.stop();
-                    statusDot.classList.remove('recording');
-                    statusText.innerText = "Transmitting Data...";
+                    statusText.innerText = "Computing Topology...";
                 }
             }, 1000);
         });
 
-        async function sendVideoToBackend() {
+        // Send to Flask Backend
+        async function sendDataToFlask() {
             const blob = new Blob(recordedChunks, { type: 'video/webm' });
             const formData = new FormData();
-            formData.append('video', blob, 'scan.webm');
-
-            resultsCard.style.display = 'flex';
-            analysisOutput.innerText = "Computing FFT frequency wavelengths & constructing GPT-4o reasoning prompt...";
+            formData.append('video', blob, 'user_video.webm');
 
             try {
-                const response = await fetch('/', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                const data = await response.json();
+                const res = await fetch('/', { method: 'POST', body: formData });
+                const data = await res.json();
                 
                 if (data.status === 'success') {
-                    analysisOutput.innerHTML = `
-                        <p style="margin-bottom: 12px;"><strong>Psychological State:</strong> ${data.ai_engine.analysis}</p>
-                        <p><strong>Behavioral Advice:</strong> ${data.ai_engine.advice}</p>
-                    `;
+                    updateUI(data);
                 } else {
-                    analysisOutput.innerText = "Error analyzing affective signal.";
+                    statusText.innerText = "Error: " + data.message;
+                    startBtn.style.display = 'block';
                 }
             } catch (err) {
-                analysisOutput.innerText = "Connection error with backend engine.";
-                console.error(err);
-            } finally {
-                startBtn.disabled = false;
-                timerBadge.innerText = "60s";
-                progressBar.style.width = "0%";
-                statusText.innerText = "System Standby";
+                console.error("Backend Error:", err);
+                statusText.innerText = "Connection Failed";
+                startBtn.style.display = 'block';
             }
         }
 
-        initCamera();
+        // پردازش دیتای واقعی دریافتی از سرور پایتون
+        function updateUI(data) {
+            statusText.innerText = "Scan Complete";
+            startBtn.innerText = "Rescan";
+            startBtn.style.display = 'block';
+            dashboardPanel.classList.add('active');
+            
+            adviceBtn.style.display = 'inline-block';
+
+            document.getElementById('valI').innerText = data.intensity.toFixed(2);
+            document.getElementById('valS').innerText = data.stability.toFixed(2);
+            document.getElementById('valW').innerText = data.wavelength.toFixed(2);
+            document.getElementById('valB').innerText = data.burstiness.toFixed(2);
+
+            document.getElementById('explainText').innerText = data.explain;
+            document.getElementById('adviceText').innerText = data.advice;
+
+            const rawEmotions = data.emotions_str ? data.emotions_str.split(',') : [];
+            const counts = { 'Angry': 0, 'Disgust': 0, 'Fear': 0, 'Happy': 0, 'Sad': 0, 'Surprise': 0, 'Neutral': 0 };
+            
+            rawEmotions.forEach(emo => {
+                let cleanEmo = emo.trim();
+                if(cleanEmo) {
+                    cleanEmo = cleanEmo.charAt(0).toUpperCase() + cleanEmo.slice(1).toLowerCase();
+                    if(counts[cleanEmo] !== undefined) {
+                        counts[cleanEmo]++;
+                    }
+                }
+            });
+
+            let mainEmo = 'Neutral';
+            let maxCount = 0;
+            for (const [emo, count] of Object.entries(counts)) {
+                if (count > maxCount) {
+                    maxCount = count;
+                    mainEmo = emo;
+                }
+            }
+
+            const color = emotionColors[mainEmo] || emotionColors['Neutral'];
+            auraOrb.innerText = mainEmo;
+            auraOrb.style.background = `radial-gradient(circle at 30% 30%, #fff 0%, ${color} 80%)`;
+            auraOrb.style.boxShadow = `0 0 50px 15px ${color}80, inset 0 0 30px rgba(0,0,0,0.4)`;
+            auraLabel.innerText = mainEmo.toUpperCase();
+            auraLabel.style.color = color;
+
+            const totalFrames = rawEmotions.length || 1;
+            
+            const radarData = [
+                counts['Angry'] / totalFrames,
+                counts['Disgust'] / totalFrames,
+                counts['Fear'] / totalFrames,
+                counts['Happy'] / totalFrames,
+                counts['Sad'] / totalFrames,
+                counts['Surprise'] / totalFrames,
+                counts['Neutral'] / totalFrames
+            ];
+            drawRadarChart(radarData);
+
+            const generatedWaveData = generateWaveFromCounts(counts, totalFrames);
+            drawWaveChart(generatedWaveData);
+        }
+
+        function drawRadarChart(radarData) {
+            const ctx = document.getElementById('radarChart').getContext('2d');
+            if (radarChartInst) radarChartInst.destroy();
+
+            radarChartInst = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Angry', 'Disgust', 'Fear', 'Happy', 'Sad', 'Surprise', 'Neutral'],
+                    datasets: [{
+                        data: radarData,
+                        backgroundColor: 'rgba(139, 92, 246, 0.3)',
+                        borderColor: '#8b5cf6',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#c084fc',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#8b5cf6'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(255,255,255,0.1)' },
+                            grid: { color: 'rgba(255,255,255,0.1)' },
+                            pointLabels: { color: '#c084fc', font: { size: 10 } },
+                            ticks: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        function generateWaveFromCounts(counts, total) {
+            const waveData = {};
+            const length = 60; 
+            
+            Object.keys(emotionColors).forEach((emo, index) => {
+                const ratio = counts[emo] / total; 
+                const baseHeight = ratio * 0.5;
+                const frequency = 0.1 + (index * 0.05);
+                
+                waveData[emo] = Array.from({length}, (_, i) => {
+                    if (ratio === 0) return 0; 
+                    return Math.max(0, baseHeight + Math.sin(i * frequency + index) * (ratio * 0.5) + (Math.random() * 0.02));
+                });
+            });
+            return waveData;
+        }
+
+        function drawWaveChart(waveData) {
+            const ctx = document.getElementById('waveChart').getContext('2d');
+            if (waveChartInst) waveChartInst.destroy();
+
+            const labels = Array.from({length: 60}, (_, i) => i);
+            const datasets = Object.keys(emotionColors).map(emotion => {
+                return {
+                    label: emotion,
+                    data: waveData[emotion],
+                    borderColor: emotionColors[emotion],
+                    backgroundColor: emotionColors[emotion] + '20',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 0
+                }
+            });
+
+            waveChartInst = new Chart(ctx, {
+                type: 'line',
+                data: { labels, datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { position: 'right', labels: { boxWidth: 10, usePointStyle: true, color: '#e5e7eb' } }
+                    },
+                    scales: {
+                        x: { title: { display: true, text: 'TIME (0s to 60s)', color: '#9ca3af' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        y: { title: { display: true, text: 'EMOTION INTENSITY', color: '#9ca3af' }, grid: { color: 'rgba(255,255,255,0.05)' }, min: 0, max: 1 }
+                    }
+                }
+            });
+        }
     </script>
 </body>
 </html>
