@@ -83,7 +83,7 @@ def SaveVideo(video):
 @app.route("/", methods=["GET", "POST"])   
 def index():
     if request.method == "POST":
-        print("lonly lonly lonnly only only only", flush=true)
+        print("lonly lonly lonnly only only only", flush=True)
         video = request.files.get('video')
         print("video getar", flush=True)
         if not video:
