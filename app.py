@@ -70,7 +70,8 @@ def pixelization():
             
         if frame_count % fps == 0:
             #print("=")
-            pixels.append(frame)
+            resized_frame = cv2.resize(frame, (224, 224))
+            pixels.append(resized_frame)
             
         frame_count += 1
 
