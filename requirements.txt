@@ -6,3 +6,4 @@ openai
 scipy
 torch
 torchvision
+gunicorn
