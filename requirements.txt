@@ -1,6 +1,6 @@
 Flask
 numpy
-opencv-python
+opencv-python-headless
 python-dotenv
 openai
 scipy
