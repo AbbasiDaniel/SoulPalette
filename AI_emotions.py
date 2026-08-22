@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torchvision import transforms
 import gc
 # ==========================================
 # 1. Fast CNN Architecture
@@ -58,7 +59,9 @@ def tell_emotion(face):
             print("Warning: 'best_emotion_model.pth' not found. Running with uninitialized weights.")
         _MODEL.to(_DEVICE)
         _MODEL.eval()
-    transform = transforms.Compose([...])
+    transform = transforms.Compose([
+        transforms.ToTensor()
+    ])
     tensor = transform(face).unsqueeze(0).to(_DEVICE)   
     with torch.no_grad():
        
