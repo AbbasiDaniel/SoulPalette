@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
+import gc
 # ==========================================
 # 1. Fast CNN Architecture
 # ==========================================
@@ -58,20 +58,16 @@ def tell_emotion(face):
             print("Warning: 'best_emotion_model.pth' not found. Running with uninitialized weights.")
         _MODEL.to(_DEVICE)
         _MODEL.eval()
-
-    tensor = torch.from_numpy(face).float()
-    tensor = tensor.permute(2, 0, 1)
-    tensor = tensor.mean(dim=0, keepdim=True) 
-    tensor = tensor.unsqueeze(0)
-    tensor = F.interpolate(tensor, size=(48, 48), mode='bilinear', align_corners=False)
-    tensor = (tensor / 255.0 - 0.5) / 0.5
-    tensor = tensor.to(_DEVICE)
-
+        
     with torch.no_grad():
+       
         outputs = _MODEL(tensor)
-        _, predicted_idx = torch.max(outputs, 1)
-
-    return EMOTION_CLASSES[predicted_idx.item()]
+        prediction_idx = torch.argmax(outputs, dim=1).item()
+        emotion_result = EMOTION_CLASSES[prediction_idx]
+    del outputs
+    gc.collect()
+    
+    return emotion_result
 
 # ==========================================
 # 3. Training Script (Isolated for Direct Execution Only)
