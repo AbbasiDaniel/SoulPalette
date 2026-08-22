@@ -1,0 +1,8 @@
+Flask
+numpy
+opencv-python
+python-dotenv
+openai
+scipy
+torch
+torchvision
