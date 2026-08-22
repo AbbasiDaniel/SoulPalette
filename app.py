@@ -4,7 +4,7 @@ import os
 from flask import redirect, url_for, jsonify
 import random, cv2
 import AI_emotions, Calculations, Prompt
-
+cv2.setNumThreads(1)
 app = Flask(__name__, template_folder='.')
 app.secret_key = 'javidshahjavidshahjavidshah'
 
