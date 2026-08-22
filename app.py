@@ -22,7 +22,7 @@ def calcualtions(Emotions):
     
 def extract_emotions(faces):
     emotions=[]
-    print("emotion", flush=true)
+    print("emotion", flush=True)
     for face in faces:
         emotions.append(AI_emotions.tell_emotion(face))
     return np.array(emotions)
@@ -33,14 +33,14 @@ def extract_faces(pixels):
     if not os.path.exists(cascade_file):
         # اصلاح مهم: به جای شیء وب (jsonify)، اینجا None برمی‌گردانیم تا حلقه بعدی کرش نکند
         return None 
-    print("ligger1", flush=true)    
+    print("ligger1", flush=True)    
     face_cascade = cv2.CascadeClassifier(cascade_file)
     cropped_faces = []
-    print("nai nia", flush=true)
+    print("nai nia", flush=True)
     for frame in pixels:
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         faces = face_cascade.detectMultiScale(gray, scaleFactor=1.3, minNeighbors=4, minSize=(30, 30))
-        print("ligger3", flush=true)
+        print("ligger3", flush=True)
         if len(faces) > 0:
             x, y, w, h = faces[0]
             face = frame[y:y+h, x:x+w]
@@ -48,7 +48,7 @@ def extract_faces(pixels):
             cropped_faces.append(face_resized)
         else:
             cropped_faces.append(cv2.resize(frame, (224, 224)))
-    print("ligger4", flush=true)
+    print("ligger4", flush=True)
     return np.array(cropped_faces)
 
 def pixelization():
@@ -57,12 +57,12 @@ def pixelization():
     fps = 30
     pixels = []
     frame_count = 0
-    print("zigga1", flush=true)
+    print("zigga1", flush=True)
     while cap.isOpened():
         ret = cap.grab()
         if not ret:
             break
-        print("zigga2", flush=true) 
+        print("zigga2", flush=True) 
         if frame_count % fps == 0:
             ret, frame = cap.retrieve()
             if ret:
@@ -70,14 +70,14 @@ def pixelization():
                 pixels.append(small_frame)
                 del frame     
         frame_count += 1
-    print("zigga3", flush=true)
+    print("zigga3", flush=True)
     cap.release()
     return np.array(pixels)
 
 def SaveVideo(video):
     os.makedirs('uploads', exist_ok=True)
     save_path = os.path.join('uploads', 'user_video.webm')
-    print("saveali", flush=true)
+    print("saveali", flush=True)
     video.save(save_path)
 
 @app.route("/", methods=["GET", "POST"])   
@@ -85,7 +85,7 @@ def index():
     if request.method == "POST":
         print("lonly lonly lonnly only only only", flush=true)
         video = request.files.get('video')
-        print("video getar", flush=true)
+        print("video getar", flush=True)
         if not video:
             return jsonify({'status': 'error', 'message': 'there is no file!'}), 400
         
