@@ -60,6 +60,8 @@ def tell_emotion(face):
         _MODEL.to(_DEVICE)
         _MODEL.eval()
     transform = transforms.Compose([
+        transforms.ToPILImage(),
+        transforms.Grayscale(num_output_channels=1),
         transforms.ToTensor()
     ])
     tensor = transform(face).unsqueeze(0).to(_DEVICE)   
