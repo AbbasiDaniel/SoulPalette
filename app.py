@@ -32,14 +32,14 @@ def extract_faces(pixels):
     cascade_file = 'haarcascade_frontalface_default.xml'
     
     if not os.path.exists(cascade_file):
-        return jsonify({'status': 'error', 'message': 'there is not file!'}), 500
+        return jsonify({'status': 'error', 'message': 'there is not any files!'}), 500
         
     face_cascade = cv2.CascadeClassifier(cascade_file)
     cropped_faces = []
 
     for frame in pixels:
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(50, 50))
+        faces = face_cascade.detectMultiScale(gray, scaleFactor=1.3, minNeighbors=4, minSize=(30, 30))
         
         if len(faces) > 0:
             x, y, w, h = faces[0]
