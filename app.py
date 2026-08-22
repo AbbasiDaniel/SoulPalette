@@ -10,6 +10,7 @@ app = Flask(__name__, template_folder='.')
 app.secret_key = 'javidshahjavidshahjavidshah'
 
 def Responds(emotions_list, intensity, stability, wavelength, burstiness):
+    print("helllo???", flush=True)
     return Prompt.give_advice(emotions_list, intensity, stability, wavelength, burstiness)
 
 def calcualtions(Emotions):
@@ -18,6 +19,7 @@ def calcualtions(Emotions):
     features.append(Calculations.calculate_stability(Emotions))
     features.append(Calculations.calculate_wavelength(Emotions))
     features.append(Calculations.calculate_burstiness(Emotions))
+    print("calcul", flush=True)
     return features
     
 def extract_emotions(faces):
@@ -25,6 +27,7 @@ def extract_emotions(faces):
     print("emotion", flush=True)
     for face in faces:
         emotions.append(AI_emotions.tell_emotion(face))
+    print("after emotions", flush=True)
     return np.array(emotions)
 
 def extract_faces(pixels):
@@ -112,7 +115,7 @@ def index():
             responds = Responds(emotions, intensity, stability, wavelength, burstiness)
             explain = responds[0]
             advice = responds[1]
-
+            print("aaayyyyoooo", flush=True)
             if isinstance(emotions, np.ndarray):
                 emotions_list = emotions.tolist()
             else:
