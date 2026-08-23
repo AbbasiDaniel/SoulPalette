@@ -65,7 +65,7 @@ def pixelization():
         ret = cap.grab()
         if not ret:
             break
-        print("zigga2", flush=True) 
+        #print("zigga2", flush=True) 
         if frame_count % fps == 0:
             ret, frame = cap.retrieve()
             if ret:
