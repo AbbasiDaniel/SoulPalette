@@ -23,12 +23,12 @@ def calcualtions(Emotions):
     return features
     
 def extract_emotions(faces):
-    emotions=[]
-    print("emotion", flush=True)
-    for face in faces:
-        emotions.append(AI_emotions.tell_emotion(face))
-    print("after emotions", flush=True)
-    return np.array(emotions)
+    print("emotion start", flush=True)
+    if faces is None or len(faces) == 0:
+        return np.array([])
+    emotions = AI_emotions.tell_emotions_batch(faces, batch_size=16)
+    print(f"after emotions", flush=True)
+    return emotions
 
 def extract_faces(pixels):
     cascade_file = 'haarcascade_frontalface_default.xml'
