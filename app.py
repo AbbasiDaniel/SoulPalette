@@ -106,7 +106,8 @@ def index():
                 
             emotions = extract_emotions(pixs)
             features = calcualtions(emotions)
-
+            del pixs
+            gc.collect()
             intensity = float(features[0])
             stability = float(features[1])
             wavelength = float(features[2])
