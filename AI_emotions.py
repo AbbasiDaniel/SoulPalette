@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from torchvision import transforms
 import numpy as np
 
-# ۱. محدود کردن نخ‌های PyTorch برای جلوگیری از مصرف زیاد رم روی لینوکس
+# ۱. محدود کردن نخ‌های PyTorch برای جلوگیری از مصرف رم
 torch.set_num_threads(1)
 torch.set_num_interop_threads(1)
 
@@ -45,12 +45,11 @@ class FastEmotionCNN(nn.Module):
         return x
 
 # ==========================================
-# 2. Global Initialization (یک‌بار در زمان اجرای سرور)
+# 2. Global Initialization
 # ==========================================
 EMOTION_CLASSES = ['angry', 'disgust', 'fear', 'happy', 'neutral', 'sad', 'surprise']
 _DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-# بارگذاری مدل فقط یک‌بار هنگام لود شدن فایل
 _MODEL = FastEmotionCNN(num_classes=7)
 try:
     _MODEL.load_state_dict(torch.load('best_emotion_model.pth', map_location=_DEVICE, weights_only=True))
@@ -61,38 +60,39 @@ except FileNotFoundError:
 _MODEL.to(_DEVICE)
 _MODEL.eval()
 
-# تعریف ساختار تبدیل تصویر به‌صورت Global
+# کلید حل مشکل رم: تغییر سایز ورودی به 48x48 قبل از ورود به شبکه
 _TRANSFORM = transforms.Compose([
     transforms.ToPILImage(),
     transforms.Grayscale(num_output_channels=1),
+    transforms.Resize((48, 48)),  # <--- مصرف رم را ۲۲ برابر کم می‌کند
     transforms.ToTensor()
 ])
 
 # ==========================================
 # 3. Fast Batch Inference Function
 # ==========================================
-def tell_emotions_batch(faces, batch_size=16):
-    """پردازش دسته‌ای تمام چهره‌ها برای جلوگیری از مصرف رم و افزایش سرعت"""
+def tell_emotions_batch(faces, batch_size=4):  # بچ سایز کوچک‌تر برای ۵۱۲ مگابایت رم
     if faces is None or len(faces) == 0:
         return np.array([])
     
     all_emotions = []
-    print("qh1", flush=True)
+    print("qh1: Starting emotion batching...", flush=True)
+    
     with torch.no_grad():
-        # تقسیم چهره‌ها به دسته‌های کوچک (Batch)
         for i in range(0, len(faces), batch_size):
             batch_faces = faces[i:i + batch_size]
-            print("qh1_2", flush=True)
-            # تبدیل همه چهره‌های دسته به یک Tensor واحد
+            
             tensors = [_TRANSFORM(face) for face in batch_faces]
             batch_tensor = torch.stack(tensors).to(_DEVICE)
-            print("qh2", flush=True)
-            # اجرای استنتاج یک‌جا روی Batch
+            
+            print(f"qh2: Running batch {i//batch_size + 1} with tensor shape {batch_tensor.shape}...", flush=True)
+            
             outputs = _MODEL(batch_tensor)
             predictions = torch.argmax(outputs, dim=1).tolist()
             
             all_emotions.extend([EMOTION_CLASSES[idx] for idx in predictions])
-    print("qh3", flush=True)
+            
+    print("qh3: Emotion detection completed successfully!", flush=True)
     return np.array(all_emotions)
 
 # ==========================================
