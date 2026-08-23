@@ -2,7 +2,12 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torchvision import transforms
-import gc
+import numpy as np
+
+# ۱. محدود کردن نخ‌های PyTorch برای جلوگیری از مصرف زیاد رم روی لینوکس
+torch.set_num_threads(1)
+torch.set_num_interop_threads(1)
+
 # ==========================================
 # 1. Fast CNN Architecture
 # ==========================================
@@ -40,40 +45,55 @@ class FastEmotionCNN(nn.Module):
         return x
 
 # ==========================================
-# 2. Inference Function for Flask (app.py)
+# 2. Global Initialization (یک‌بار در زمان اجرای سرور)
 # ==========================================
-_MODEL = None
-_DEVICE = None
-
 EMOTION_CLASSES = ['angry', 'disgust', 'fear', 'happy', 'neutral', 'sad', 'surprise']
+_DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-def tell_emotion(face):
-    global _MODEL, _DEVICE
+# بارگذاری مدل فقط یک‌بار هنگام لود شدن فایل
+_MODEL = FastEmotionCNN(num_classes=7)
+try:
+    _MODEL.load_state_dict(torch.load('best_emotion_model.pth', map_location=_DEVICE, weights_only=True))
+    print("PyTorch model loaded successfully.", flush=True)
+except FileNotFoundError:
+    print("Warning: 'best_emotion_model.pth' not found. Running with uninitialized weights.", flush=True)
+
+_MODEL.to(_DEVICE)
+_MODEL.eval()
+
+# تعریف ساختار تبدیل تصویر به‌صورت Global
+_TRANSFORM = transforms.Compose([
+    transforms.ToPILImage(),
+    transforms.Grayscale(num_output_channels=1),
+    transforms.ToTensor()
+])
+
+# ==========================================
+# 3. Fast Batch Inference Function
+# ==========================================
+def tell_emotions_batch(faces, batch_size=16):
+    """پردازش دسته‌ای تمام چهره‌ها برای جلوگیری از مصرف رم و افزایش سرعت"""
+    if faces is None or len(faces) == 0:
+        return np.array([])
     
-    if _MODEL is None:
-        _DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        _MODEL = FastEmotionCNN(num_classes=7)
-        try:
-            _MODEL.load_state_dict(torch.load('best_emotion_model.pth', map_location=_DEVICE, weights_only=True))
-        except FileNotFoundError:
-            print("Warning: 'best_emotion_model.pth' not found. Running with uninitialized weights.")
-        _MODEL.to(_DEVICE)
-        _MODEL.eval()
-    transform = transforms.Compose([
-        transforms.ToPILImage(),
-        transforms.Grayscale(num_output_channels=1),
-        transforms.ToTensor()
-    ])
-    tensor = transform(face).unsqueeze(0).to(_DEVICE)   
+    all_emotions = []
+    print("qh1", flush=True)
     with torch.no_grad():
-       
-        outputs = _MODEL(tensor)
-        prediction_idx = torch.argmax(outputs, dim=1).item()
-        emotion_result = EMOTION_CLASSES[prediction_idx]
-    del outputs
-    gc.collect()
-    
-    return emotion_result
+        # تقسیم چهره‌ها به دسته‌های کوچک (Batch)
+        for i in range(0, len(faces), batch_size):
+            batch_faces = faces[i:i + batch_size]
+            print("qh1_2", flush=True)
+            # تبدیل همه چهره‌های دسته به یک Tensor واحد
+            tensors = [_TRANSFORM(face) for face in batch_faces]
+            batch_tensor = torch.stack(tensors).to(_DEVICE)
+            print("qh2", flush=True)
+            # اجرای استنتاج یک‌جا روی Batch
+            outputs = _MODEL(batch_tensor)
+            predictions = torch.argmax(outputs, dim=1).tolist()
+            
+            all_emotions.extend([EMOTION_CLASSES[idx] for idx in predictions])
+    print("qh3", flush=True)
+    return np.array(all_emotions)
 
 # ==========================================
 # 3. Training Script (Isolated for Direct Execution Only)
