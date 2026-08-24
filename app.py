@@ -123,10 +123,6 @@ def index():
                 emotions_list = list(emotions)
                 
             emotions_str = ", ".join(emotions_list)
-
-            # بررسی وجود فریم قبل از ذخیره عکس برای جلوگیری از خطای IndexError
-            if len(pixs) > 0:
-                cv2.imwrite('test_face.jpg', pixs[0])
             
             return jsonify({
                 'status': 'success',
