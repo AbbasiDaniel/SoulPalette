@@ -1,9 +1,10 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch
+torchvision
 Flask
+gunicorn
 numpy
 opencv-python-headless==4.10.0.84
 python-dotenv
 openai
 scipy
-torch
-torchvision
-gunicorn
