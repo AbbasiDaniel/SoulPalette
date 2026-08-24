@@ -45,38 +45,50 @@ class FastEmotionCNN(nn.Module):
         return x
 
 # ==========================================
-# 2. Global Initialization
+# 2. Global Initialization (Lazy)
 # ==========================================
 EMOTION_CLASSES = ['angry', 'disgust', 'fear', 'happy', 'neutral', 'sad', 'surprise']
 _DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-_MODEL = FastEmotionCNN(num_classes=7)
-try:
-    _MODEL.load_state_dict(torch.load('best_emotion_model.pth', map_location=_DEVICE, weights_only=True))
-    print("PyTorch model loaded successfully.", flush=True)
-except FileNotFoundError:
-    print("Warning: 'best_emotion_model.pth' not found. Running with uninitialized weights.", flush=True)
+# مدل رو اینجا فقط تعریف می‌کنیم اما بارگذاری نمی‌کنیم (None می‌ذاریم)
+_MODEL = None
 
-_MODEL.to(_DEVICE)
-_MODEL.eval()
-
-# کلید حل مشکل رم: تغییر سایز ورودی به 48x48 قبل از ورود به شبکه
 _TRANSFORM = transforms.Compose([
     transforms.ToPILImage(),
     transforms.Grayscale(num_output_channels=1),
-    transforms.Resize((48, 48)),  # <--- مصرف رم را ۲۲ برابر کم می‌کند
+    transforms.Resize((48, 48)),  # مصرف رم را ۲۲ برابر کم می‌کند
     transforms.ToTensor()
 ])
+
+def get_model():
+    """بارگذاری تنبل: مدل فقط زمانی لود می‌شود که برای اولین بار فراخوانی شود"""
+    global _MODEL
+    if _MODEL is None:
+        print("Lazy Loading: Initializing and loading model weights into RAM...", flush=True)
+        _MODEL = FastEmotionCNN(num_classes=7)
+        try:
+            _MODEL.load_state_dict(torch.load('best_emotion_model.pth', map_location=_DEVICE, weights_only=True))
+            print("PyTorch model loaded successfully.", flush=True)
+        except FileNotFoundError:
+            print("Warning: 'best_emotion_model.pth' not found. Running with uninitialized weights.", flush=True)
+        
+        _MODEL.to(_DEVICE)
+        _MODEL.eval()
+    
+    return _MODEL
 
 # ==========================================
 # 3. Fast Batch Inference Function
 # ==========================================
-def tell_emotions_batch(faces, batch_size=4):  # بچ سایز کوچک‌تر برای ۵۱۲ مگابایت رم
+def tell_emotions_batch(faces, batch_size=4):  
     if faces is None or len(faces) == 0:
         return np.array([])
     
     all_emotions = []
     print("qh1: Starting emotion batching...", flush=True)
+    
+    # دریافت مدل (اگر بار اول باشد لود می‌شود، دفعات بعد از رم می‌خواند)
+    model = get_model()
     
     with torch.no_grad():
         for i in range(0, len(faces), batch_size):
@@ -87,7 +99,8 @@ def tell_emotions_batch(faces, batch_size=4):  # بچ سایز کوچک‌تر �
             
             print(f"qh2: Running batch {i//batch_size + 1} with tensor shape {batch_tensor.shape}...", flush=True)
             
-            outputs = _MODEL(batch_tensor)
+            # استفاده از مدل
+            outputs = model(batch_tensor)
             predictions = torch.argmax(outputs, dim=1).tolist()
             
             all_emotions.extend([EMOTION_CLASSES[idx] for idx in predictions])
