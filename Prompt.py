@@ -34,20 +34,15 @@ def give_advice(emotions_list, intensity, stability, wavelength, burstiness):
 
     messages = [{"role": "user", "content": prompt_1}]
 
-    try:
-        print("--> Sending Prompt 1 to Groq...", flush=True)
-        response_1 = client.chat.completions.create(
-            model="openai/gpt-oss-20b",
-            messages=messages,
-            temperature=0.7,
-        )
-        print("--> Response 1 received!", flush=True)
-    except Exception as e:
-        print(f"--> GROQ API ERROR: {str(e)}", flush=True)
-        raise e
-
+    response_1 = client.chat.completions.create(
+        model="openai/gpt-oss-20b",
+        messages=messages,
+        temperature=0.7,
+    )
+    
     state_explanation = response_1.choices[0].message.content
     answers.append(state_explanation)
+    messages.append({"role": "assistant", "content": state_explanation})
     
     prompt_2 = """
     Now, based exactly on the emotional flow and inner state you just described to me, I want you to give me a game plan for today.

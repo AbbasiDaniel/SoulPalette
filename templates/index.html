@@ -514,12 +514,8 @@
             auraLabel.innerText = "-";
 
             const stream = video.srcObject;
-            const options = { 
-                mimeType: 'video/webm;codecs=vp8',
-                videoBitsPerSecond: 250000 // محدود کردن بیت‌ریت برای کاهش حجم فایل ویدیو
-            };
-            mediaRecorder = new MediaRecorder(stream, options);
-            mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); }
+            mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+            mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
             mediaRecorder.onstop = sendDataToFlask;
             mediaRecorder.start();
 
