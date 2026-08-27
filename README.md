@@ -11,13 +11,13 @@
 
 ---
 
-## 📖 Overview
+## Overview
 
 SoulPalette illustrates your emotions as colors that contain parameters such as intensity, wavelength, and stability. Additionally, it features the demonstration of your emotions through charts and numbers. Finally, it provides users with a brief elaboration of their emotional state and personalized advice suggested to them based on the calculation.
 
 ---
 
-## 🏗️ Architecture & Pipeline
+## Architecture & Pipeline
 
 **1. Video Capture & Face Detection:**  
 Initially, the frontend records a solid 60-second video from the user once the button is pressed. The recorded video is compiled into 60 frames (one frame per second). Then, by using OpenCV functions, the video's pixels are extracted and stored within an array. However, the emotion detection system input is designed specifically for human face frames. Therefore, I used the pre-trained face detection functions of the OpenCV library (`cv2`) to extract the human face from each image.
@@ -37,7 +37,7 @@ At the very end, I built an extra feature that connects to Groq AI (using its AP
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 * **Deep Learning & Computer Vision:** PyTorch, Torchvision, OpenCV (`cv2`)
 * **Signal Processing & Data Analysis:** NumPy, SciPy
@@ -47,7 +47,7 @@ At the very end, I built an extra feature that connects to Groq AI (using its AP
 
 ---
 
-## ⚙️ Technical Challenges & Optimizations
+## Technical Challenges & Optimizations
 
 One of the major problems I faced during implementation was server RAM limitations. In an online deployment scenario (such as on Render), the server does not provide sufficient RAM for heavy PyTorch operations, which led to several key changes in my system architecture:
 
@@ -60,7 +60,7 @@ One of the major problems I faced during implementation was server RAM limitatio
 
 ---
 
-## 🚀 Installation & Local Setup
+## Installation & Local Setup
 
 Follow these steps to run **SoulPalette** locally on your machine:
 
