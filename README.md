@@ -2,6 +2,11 @@
 
 > **A web application project that detects your inner and hidden emotions, going beyond just a simple label.**
 
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Try_It_Now-brightgreen?style=for-the-badge&logo=render)](https://soulpalette.onrender.com)
+
+🌐 **Live Website:** [soulpalette.onrender.com](https://soulpalette.onrender.com)
+
+---
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat&logo=python&logoColor=white)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=flat&logo=pytorch&logoColor=white)](https://pytorch.org/)
 [![OpenCV](https://img.shields.io/badge/OpenCV-5C3EE8?style=flat&logo=opencv&logoColor=white)](https://opencv.org/)
